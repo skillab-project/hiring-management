@@ -35,7 +35,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cors = new CorsConfiguration();
         // Από πού επιτρέπεις requests (React dev server)
-        cors.setAllowedOrigins(List.of("http://localhost:3000"));
+        cors.setAllowedOriginPatterns(List.of("*"));
         // Ποιες μέθοδοι επιτρέπονται
         cors.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
         // Headers που επιτρέπεις να σταλούν στο request
@@ -43,7 +43,7 @@ public class SecurityConfig {
         // Headers που εκθέτεις στην απάντηση (αν χρειάζεται)
         cors.setExposedHeaders(List.of("*"));
         // Αν στέλνεις cookies/Authorization από browser
-        cors.setAllowCredentials(true);
+        cors.setAllowCredentials(false);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         // Εφάρμοσε τα παραπάνω σε όλα τα endpoints
