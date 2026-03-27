@@ -1,47 +1,28 @@
 services:
 
-  backend:
-    build: ./backend
-    container_name: skillab-hiring-backend
-    restart: unless-stopped
-    external_links:
-      - employee-pulse-db:postgres
+  hiring-management-backend:
+    build: .
+    image: ${DOCKER_REG}${DOCKER_REPO}${APP_NAME}:${DOCKER_TAG}
+    container_name: hiring-management-backend
+    ports:
+      - "8890:8080"
     environment:
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
-      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: none
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://employee-management-db:5432/labourpulse_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=none
     volumes:
-        - cvs-data:/data/file-storage/cvs
-    ports:
-      - "8087:8080"
+      - hiring-cvs-data:/data/file-storage/cvs
     networks:
-      - hr-shared-network
-    env_file:
-      - .env
-
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: skillab-hiring-frontend
-    restart: unless-stopped
-    depends_on:
-      - backend
-    environment:
-      # React must receive REACT_APP_* values at build/runtime
-      REACT_APP_BASE_URL: ${REACT_APP_BASE_URL}
-    ports:
-      - "8088:3000"
-    networks:
-      - hr-shared-network
+      - shared-net
+    labels:
+      io.portainer.accesscontrol.teams: skillab-all
       
 networks:
-  hr-shared-network:
+  shared-net:
     external: true
 
 volumes:
-  postgres-data:
-    driver: local
-  cvs-data:
-    driver: local
+  hiring-cvs-data:
+    labels:
+      io.portainer.accesscontrol.teams: skillab-all
