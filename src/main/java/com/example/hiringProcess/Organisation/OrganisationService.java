@@ -2,7 +2,9 @@ package com.example.hiringProcess.Organisation;
 
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,41 +19,38 @@ public class OrganisationService {
         this.organisationRepository = organisationRepository;
     }
 
-    public List<Organisation> getAll() {
-        return organisationRepository.findAll();
+    /**
+     * Translates an Organization Name (from Header) into an ID.
+     */
+    public Integer getIdByName(String orgName) {
+        return organisationRepository.findByName(orgName)
+                .map(Organisation::getId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Organization '" + orgName + "' not found"
+                ));
     }
+
+    /**
+     * Returns the name of an organization given its ID.
+     */
+    public String getOrganizationNameById(Integer id) {
+        return organisationRepository.findNameById(id)
+                .orElseThrow(() -> new RuntimeException("Organization with ID " + id + " not found"));
+    }
+
+
+    public List<OrganisationResponseDTO> getAll() {
+//        return organisationRepository.findAll();
+        return organisationRepository.findAll()
+                .stream()
+                .map(org -> new OrganisationResponseDTO(org.getName(), org.getDescription()))
+                .toList();
+    }
+
 
     public Optional<Organisation> getById(Integer id) {
         return organisationRepository.findById(id);
-    }
-
-    public Organisation create(Organisation organisation) {
-        organisation.setId(0); // force insert
-        return organisationRepository.save(organisation);
-    }
-
-    @Transactional
-    public Organisation update(Integer id, Organisation updatedFields) {
-        Organisation existing = organisationRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("Organisation with id " + id + " does not exist"));
-
-        if (updatedFields.getName() != null && !updatedFields.getName().isEmpty()) {
-            existing.setName(updatedFields.getName());
-        }
-
-        if (updatedFields.getDescription() != null && !updatedFields.getDescription().isEmpty()) {
-            existing.setDescription(updatedFields.getDescription());
-        }
-
-        return existing;
-    }
-
-    @Transactional
-    public void delete(Integer id) {
-        Organisation existing = organisationRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("Organisation with id " + id + " does not exist"));
-
-        organisationRepository.delete(existing);
     }
 
 }

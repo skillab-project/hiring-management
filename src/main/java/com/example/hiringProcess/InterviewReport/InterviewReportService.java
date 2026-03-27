@@ -17,6 +17,10 @@ public class InterviewReportService {
         this.interviewReportRepository = interviewReportRepository;
     }
 
+    public boolean existsByOrg(Integer reportId, Integer orgId) {
+        return interviewReportRepository.existsByIdAndOrganisationId(reportId, orgId);
+    }
+
     // Επιστρέφει όλα τα InterviewReports
     public List<InterviewReport> getAll() {
         return interviewReportRepository.findAll();

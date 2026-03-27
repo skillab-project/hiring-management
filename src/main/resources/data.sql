@@ -2,7 +2,7 @@
 INSERT INTO organisation (id, name, description) VALUES (3, 'TechCorp', 'A global tech company');
 
 -- === DEPARTMENT ===
-INSERT INTO department (id, name, location, description, organisation_id) VALUES
+INSERT INTO department (id, name, location, description, organization_id) VALUES
 (4, 'Engineering', 'Athens', 'Handles product dev', 3),
 (5, 'HR', 'Thessaloniki', 'Manages HR stuff', 3),
 (6, 'Data Science', 'Patra', 'Data and AI department', 3);
@@ -583,7 +583,7 @@ INSERT INTO skill_score (candidate_id, question_id, skill_id, score) VALUES
 (46, 93, 27, 20);
 
 -- === EXTRA DEPARTMENTS (no job ads) ===
-INSERT INTO department (id, name, location, description, organisation_id) VALUES
+INSERT INTO department (id, name, location, description, organization_id) VALUES
 (7,  'Product',            'Athens',       'Product management & discovery',           3),
 (8,  'Quality Assurance',  'Thessaloniki', 'Manual & automated testing',               3),
 (9,  'IT Support',         'Athens',       'Helpdesk, device mgmt & internal tools',   3),

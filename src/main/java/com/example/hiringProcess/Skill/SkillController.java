@@ -28,19 +28,4 @@ public class SkillController {
         return skillService.getSkill(skillId);
     }
 
-    @PostMapping(path = "/newskill")
-    public void addNewSkill(@RequestBody Skill skill) {
-        skillService.addNewSkill(skill);
-    }
-
-    @DeleteMapping(path = "/skill/{skillId}")
-    public void deleteSkill(@PathVariable("skillId") Integer skillId) {
-        skillService.deleteSkill(skillId);
-    }
-
-    @PutMapping(path = "/skill/{skillId}")
-    public void updateSkill(@PathVariable("skillId") Integer skillId,
-                            @RequestBody Skill updatedSkill) {
-        skillService.updateSkill(skillId, updatedSkill);
-    }
 }

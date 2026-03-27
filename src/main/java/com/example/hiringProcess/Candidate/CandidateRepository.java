@@ -6,15 +6,53 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface CandidateRepository extends JpaRepository<Candidate, Integer> {
 
+    //    boolean existsByIdAndOrganisationId(Integer id, Integer orgId);
+    // 1. The "Exists" check for security
+    @Query("""
+            SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END 
+            FROM Candidate c 
+            JOIN c.jobAd ja 
+            JOIN ja.departments d 
+            WHERE c.id = :id AND d.organisation.id = :orgId
+        """)
+    boolean existsByIdAndOrganisationId(@Param("id") Integer id, @Param("orgId") Integer orgId);
+
+    // 2. The "Find One" check (Useful for your GET /{id} endpoint)
+    @Query("""
+        SELECT c FROM Candidate c 
+        JOIN c.jobAd ja 
+        JOIN ja.departments d 
+        WHERE c.id = :id AND d.organisation.id = :orgId
+    """)
+    Optional<Candidate> findByIdAndOrganisationId(@Param("id") Integer id, @Param("orgId") Integer orgId);
+
+
     long countByJobAd_IdAndStatusIgnoreCase(Integer jobAdId, String status);
 
-    // Λίστα ΟΛΩΝ των υποψηφίων ως CandidateDTO (projection)
+//    // Λίστα ΟΛΩΝ των υποψηφίων ως CandidateDTO (projection)
+//    @Query("""
+//        select new com.example.hiringProcess.Candidate.CandidateDTO(
+//            c.id,
+//            c.firstName,
+//            c.lastName,
+//            c.email,
+//            c.status,
+//            c.cvPath,
+//            c.cvOriginalName,
+//            c.interviewReport.id
+//        )
+//        from Candidate c
+//        order by c.id
+//    """)
+//    List<CandidateDTO> findAllListDtos();
+
     @Query("""
-        select new com.example.hiringProcess.Candidate.CandidateDTO(
+        select DISTINCT new com.example.hiringProcess.Candidate.CandidateDTO(
             c.id,
             c.firstName,
             c.lastName,
@@ -25,9 +63,12 @@ public interface CandidateRepository extends JpaRepository<Candidate, Integer> {
             c.interviewReport.id
         )
         from Candidate c
+        join c.jobAd ja
+        join ja.departments d
+        where d.organisation.id = :orgId
         order by c.id
     """)
-    List<CandidateDTO> findAllListDtos();
+    List<CandidateDTO> findAllListDtosByOrgId(@Param("orgId") Integer orgId);
 
     // Λίστα υποψηφίων ενός Job Ad ως CandidateDTO (projection)
     @Query("""
@@ -67,4 +108,6 @@ public interface CandidateRepository extends JpaRepository<Candidate, Integer> {
           AVG(ss.score) DESC
     """)
     List<CandidateFinalScoreDTO> findFinalScoresByJobAd(@Param("jobAdId") Integer jobAdId);
+
+
 }

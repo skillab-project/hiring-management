@@ -22,6 +22,7 @@ public class JobAd {
     private int id;
 
     private String title;
+    @Column(columnDefinition = "TEXT")
     private String description;
     private LocalDate publishDate;
     private String status;

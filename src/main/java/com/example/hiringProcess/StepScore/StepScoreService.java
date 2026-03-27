@@ -27,14 +27,6 @@ public class StepScoreService {
     @Autowired
     private StepRepository stepRepository;
 
-    public Optional<Step> getStepById(Integer id) {
-        return stepRepository.findById(id);
-    }
-
-    public List<Step> getAllSteps() {
-        return stepRepository.findAll(); // ή με sort αν θες π.χ. κατά interviewId
-    }
-
     public List<Step> getStepsByInterviewReportId(Integer interviewReportId) {
         var report = interviewReportRepository.findById(interviewReportId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid report ID: " + interviewReportId));

@@ -1,5 +1,6 @@
 package com.example.hiringProcess.Candidate;
 
+import com.example.hiringProcess.Organisation.OrganisationService;
 import com.example.hiringProcess.SkillScore.SkillScoreResponseDTO;
 import com.example.hiringProcess.SkillScore.SkillScoreService;
 import com.example.hiringProcess.SkillScore.SkillScoreUpsertRequestDTO;
@@ -36,55 +37,97 @@ public class CandidateController {
     private final CandidateService candidateService;
     private final SkillScoreService skillScoreService;
     private final JobAdRepository jobAdRepository;
+    private static final String UPLOAD_DIR = "/data/file-storage/cvs";
+    private final OrganisationService organizationService;
 
     public CandidateController(CandidateService candidateService,
                                SkillScoreService skillScoreService,
-                               JobAdRepository jobAdRepository) {
+                               JobAdRepository jobAdRepository,
+                               OrganisationService organizationService) {
+        this.organizationService = organizationService;
         this.candidateService = candidateService;
         this.skillScoreService = skillScoreService;
         this.jobAdRepository = jobAdRepository;
     }
 
     // Επιστροφή συγκεκριμένου υποψηφίου
-    @GetMapping("/{id}")
-    public Candidate getCandidate(@PathVariable Integer id) {
-        return candidateService.getCandidate(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Candidate not found"));
+    @GetMapping("/{id}") //OK
+    public ResponseEntity<Candidate> getCandidate(@PathVariable Integer id, @RequestHeader(value = "X-User-Organization", required = true) String headerOrgName) {
+        Integer orgId = organizationService.getIdByName(headerOrgName);
+
+
+        if (!candidateService.existsByOrg(id, orgId)) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(candidateService.getCandidate(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Candidate not found")));
     }
 
     // Ενημέρωση στοιχείων υποψηφίου
-    @PutMapping("/{id}")
+    @PutMapping("/{id}") //OK
     public ResponseEntity<Candidate> updateCandidate(
             @PathVariable("id") Integer id,
-            @RequestBody Candidate updatedCandidate) {
+            @RequestBody Candidate updatedCandidate, @RequestHeader(value = "X-User-Organization", required = true) String headerOrgName) {
+        Integer orgId = organizationService.getIdByName(headerOrgName);
+
+
+
+
+        if (!candidateService.existsByOrg(id, orgId)) {
+            return ResponseEntity.notFound().build();
+        }
         Candidate updated = candidateService.updateCandidate(id, updatedCandidate);
         return ResponseEntity.ok(updated);
     }
 
     // Διαγραφή υποψηφίου
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCandidate(@PathVariable Integer id) {
+    @DeleteMapping("/{id}") //OK
+    public ResponseEntity<Void> deleteCandidate(@PathVariable Integer id, @RequestHeader(value = "X-User-Organization", required = true) String headerOrgName) {
+        Integer orgId = organizationService.getIdByName(headerOrgName);
+
+
+
+        if (!candidateService.existsByOrg(id, orgId)) {
+            return ResponseEntity.notFound().build();
+        }
+
         candidateService.deleteCandidate(id);
         return ResponseEntity.noContent().build();
     }
 
     // Λίστα όλων των υποψηφίων
-    @GetMapping
-    public List<CandidateDTO> getCandidates() {
-        return candidateService.getCandidateDTOs();
+    @GetMapping //OK
+    public List<CandidateDTO> getCandidates(@RequestHeader(value = "X-User-Organization", required = true) String headerOrgName) {
+        Integer orgId = organizationService.getIdByName(headerOrgName);
+
+
+
+
+        return candidateService.getCandidateDTOs(orgId);
     }
 
     // Λίστα υποψηφίων για συγκεκριμένο Job Ad
-    @GetMapping("/jobad/{jobAdId}")
-    public List<CandidateDTO> getCandidatesByJobAd(@PathVariable Integer jobAdId) {
-        return candidateService.getCandidateDTOsByJobAd(jobAdId);
+    @GetMapping("/jobad/{jobAdId}") //OK
+    public List<CandidateDTO> getCandidatesByJobAd(@PathVariable Integer jobAdId, @RequestHeader(value = "X-User-Organization", required = true) String headerOrgName) {
+        Integer orgId = organizationService.getIdByName(headerOrgName);
+
+
+
+        return candidateService.getCandidateDTOsByJobAd(orgId, jobAdId);
     }
 
     // Αποθήκευση/ενημέρωση αξιολόγησης δεξιοτήτων για υποψήφιο
-    @PostMapping("/{id}/evaluations")
+    @PostMapping("/{id}/evaluations") //TODO check use
     public ResponseEntity<SkillScoreResponseDTO> saveSkillEvaluation(
             @PathVariable int id,
-            @RequestBody SkillScoreUpsertRequestDTO dto) {
+            @RequestBody SkillScoreUpsertRequestDTO dto, @RequestHeader(value = "X-User-Organization", required = true) String headerOrgName) {
+        Integer orgId = organizationService.getIdByName(headerOrgName);
+
+
+
+        if (!candidateService.existsByOrg(id, orgId)) {
+            return ResponseEntity.notFound().build();
+        }
 
         if (dto == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Body is required");
@@ -106,13 +149,18 @@ public class CandidateController {
                 dto.comment()
         );
 
-        SkillScoreResponseDTO saved = skillScoreService.upsert(safeDto);
+        SkillScoreResponseDTO saved = skillScoreService.upsert(safeDto, orgId);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     // Λήψη CV υποψηφίου (fallback σε SampleCV αν λείπει)
-    @GetMapping("/{id}/cv")
-    public ResponseEntity<Resource> downloadCv(@PathVariable("id") int id) throws Exception {
+    @GetMapping("/{id}/cv") //OK
+    public ResponseEntity<Resource> downloadCv(@RequestHeader(value = "X-User-Organization", required = true) String headerOrgName, @PathVariable("id") int id) throws Exception {
+        Integer orgId = organizationService.getIdByName(headerOrgName);
+
+        if (!candidateService.existsByOrg(id, orgId)) {
+            return ResponseEntity.notFound().build();
+        }
         var cand = candidateService.getCandidate(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Candidate " + id + " not found"));
 
@@ -145,10 +193,16 @@ public class CandidateController {
     }
 
     // Ενημέρωση status υποψηφίου
-    @PatchMapping("/{id}/status")
+    @PatchMapping("/{id}/status") //OK
     public ResponseEntity<Void> updateCandidateStatus(
             @PathVariable Integer id,
-            @RequestBody CandidateStatusDTO dto) {
+            @RequestBody CandidateStatusDTO dto, @RequestHeader(value = "X-User-Organization", required = true) String headerOrgName) {
+        Integer orgId = organizationService.getIdByName(headerOrgName);
+
+
+        if (!candidateService.existsByOrg(id, orgId)) {
+            return ResponseEntity.notFound().build();
+        }
         if (dto == null || dto.getStatus() == null || dto.getStatus().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "status is required");
         }
@@ -157,10 +211,11 @@ public class CandidateController {
     }
 
     // Δημιουργία νέου υποψηφίου
-    @PostMapping
+    @PostMapping //TODO check USE
     public ResponseEntity<Candidate> createCandidate(
             @RequestParam("jobAdId") Integer jobAdId,
-            @RequestBody Candidate body) {
+            @RequestBody Candidate body, @RequestHeader(value = "X-User-Organization", required = true) String headerOrgName) {
+        Integer orgId = organizationService.getIdByName(headerOrgName);
 
         if (body == null || body.getFirstName() == null || body.getFirstName().isBlank()
                 || body.getLastName() == null || body.getLastName().isBlank()
@@ -171,7 +226,7 @@ public class CandidateController {
                     "firstName, lastName, email και jobAdId είναι υποχρεωτικά");
         }
 
-        Candidate saved = candidateService.createCandidateWithSkeleton(jobAdId, body);
+        Candidate saved = candidateService.createCandidateWithSkeleton(jobAdId, body, orgId);
         return ResponseEntity
                 .created(URI.create("/api/v1/candidates/" + saved.getId()))
                 .body(saved);
@@ -179,16 +234,25 @@ public class CandidateController {
 
 
     // Επιστρέφει τα τελικά σκορ υποψηφίων για συγκεκριμένο Job Ad (φθίνουσα)
-    @GetMapping("/jobad/{jobAdId}/final-scores")
-    public List<CandidateFinalScoreDTO> getFinalScoresForJobAd(@PathVariable Integer jobAdId) {
-        return candidateService.getCandidateFinalScoresForJobAd(jobAdId);
+    @GetMapping("/jobad/{jobAdId}/final-scores") //OK
+    public List<CandidateFinalScoreDTO> getFinalScoresForJobAd(
+            @PathVariable Integer jobAdId, @RequestHeader(value = "X-User-Organization", required = true) String headerOrgName) {
+        Integer orgId = organizationService.getIdByName(headerOrgName);
+
+        return candidateService.getCandidateFinalScoresForJobAd(jobAdId, orgId);
     }
 
     // Αλλαγή status σε Hire υποψηφίου και επιστροφή ενημερωμένου status
-    @PostMapping("/{id}/hire")
-    public ResponseEntity<?> hireCandidate(@PathVariable Integer id) {
+    @PostMapping("/{id}/hire") //OK
+    public ResponseEntity<?> hireCandidate(@PathVariable Integer id, @RequestHeader(value = "X-User-Organization", required = true) String headerOrgName) {
+        Integer orgId = organizationService.getIdByName(headerOrgName);
+
+
+        if (!candidateService.existsByOrg(id, orgId)) {
+            return ResponseEntity.notFound().build();
+        }
         try {
-            CandidateAndJobAdStatusDTO dto = candidateService.hireCandidate(id);
+            CandidateAndJobAdStatusDTO dto = candidateService.hireCandidate(id, orgId);
             return ResponseEntity.ok(dto);
         } catch (IllegalStateException e) {
             String msg = e.getMessage();
@@ -203,8 +267,10 @@ public class CandidateController {
     }
 
     // Upload CV (PDF) στο uploads/cv και επιστροφή path + originalName
-    @PostMapping(value = "/upload-cv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public Map<String, String> uploadCv(@RequestParam("file") MultipartFile file) {
+    @PostMapping(value = "/upload-cv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE) //OK //TODO Add Organization ID and check for safety
+    public Map<String, String> uploadCv(@RequestParam("file") MultipartFile file, @RequestHeader(value = "X-User-Organization", required = true) String headerOrgName) {
+        Integer orgId = organizationService.getIdByName(headerOrgName);
+
         try {
             if (file == null || file.isEmpty()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No file");
@@ -213,8 +279,11 @@ public class CandidateController {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only PDF allowed");
             }
 
-            Path base = Paths.get("uploads", "cv").normalize();
-            Files.createDirectories(base);
+            // Path base = Paths.get("uploads", "cv").normalize();
+            // Files.createDirectories(base);
+            Path base = Paths.get(UPLOAD_DIR);
+            if (!Files.exists(base)) Files.createDirectories(base);
+
 
             String ts = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss_SSS").format(LocalDateTime.now());
             String original = file.getOriginalFilename();
@@ -228,10 +297,15 @@ public class CandidateController {
 
             String rel = base.resolve(out.getFileName()).toString().replace('\\', '/');
 
+            // return Map.of(
+            //         "path", rel,
+            //         "originalName", (original != null && !original.isBlank()) ? original : "cv.pdf"
+            // );
             return Map.of(
-                    "path", rel,
+                    "path", out.toString(), 
                     "originalName", (original != null && !original.isBlank()) ? original : "cv.pdf"
             );
+
         } catch (ResponseStatusException e) {
             throw e;
         } catch (Exception e) {
@@ -240,10 +314,16 @@ public class CandidateController {
     }
 
     // Ενημερώνει μόνο το πεδίο "comments" ενός υποψηφίου
-    @PatchMapping("/{id}/comments")
+    @PatchMapping("/{id}/comments") //OK
     public ResponseEntity<Void> updateCandidateComments(
             @PathVariable Integer id,
-            @RequestBody CandidateCommentDTO dto) {
+            @RequestBody CandidateCommentDTO dto, @RequestHeader(value = "X-User-Organization", required = true) String headerOrgName) {
+        Integer orgId = organizationService.getIdByName(headerOrgName);
+
+
+        if (!candidateService.existsByOrg(id, orgId)) {
+            return ResponseEntity.notFound().build();
+        }
 
         if (dto == null || dto.getComments() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "comments are required");
@@ -259,13 +339,24 @@ public class CandidateController {
             if (path.startsWith("classpath:")) {
                 return new ClassPathResource(path.substring("classpath:".length()));
             }
-            Path base = Paths.get("uploads", "cv").normalize();
+            // Path base = Paths.get("uploads", "cv").normalize();
+            // Path p = Paths.get(path).normalize();
+            Path base = Paths.get(UPLOAD_DIR).normalize();
             Path p = Paths.get(path).normalize();
-            if (p.isAbsolute()) return null;
-            if (!p.startsWith("uploads")) {
-                p = base.resolve(p).normalize();
+
+            // if (p.isAbsolute()) return null;
+            // if (!p.startsWith("uploads")) {
+            //     p = base.resolve(p).normalize();
+            // }
+            // if (!p.startsWith(base)) return null;
+            // if (Files.exists(p) && Files.isReadable(p)) {
+            //     return new FileSystemResource(p);
+            // }
+            if (!p.startsWith(base)) {
+                // If the DB only has the filename, resolve it against base
+                p = base.resolve(p.getFileName()).normalize();
             }
-            if (!p.startsWith(base)) return null;
+            
             if (Files.exists(p) && Files.isReadable(p)) {
                 return new FileSystemResource(p);
             }

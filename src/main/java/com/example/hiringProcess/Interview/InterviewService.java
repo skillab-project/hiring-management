@@ -25,6 +25,14 @@ public class InterviewService {
         this.interviewMapper = interviewMapper;
     }
 
+
+    /**
+     * Checks if a specific Interview belongs to the given Organization.
+     */
+    public boolean existsByOrg(Integer interviewId, Integer orgId) {
+        return interviewRepository.existsByIdAndOrganisationId(interviewId, orgId);
+    }
+
     public List<Interview> getInterviews() {
         return interviewRepository.findAll();
     }

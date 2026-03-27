@@ -1,5 +1,13 @@
 package com.example.hiringProcess.Analytics;
 
+import com.example.hiringProcess.Candidate.CandidateMapper;
+import com.example.hiringProcess.Candidate.CandidateRepository;
+import com.example.hiringProcess.Candidate.CandidateService;
+import com.example.hiringProcess.Department.DepartmentService;
+import com.example.hiringProcess.JobAd.JobAdRepository;
+import com.example.hiringProcess.JobAd.JobAdService;
+import com.example.hiringProcess.Question.QuestionRepository;
+import com.example.hiringProcess.SkillScore.SkillScoreRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -12,8 +20,19 @@ public class AnalyticsService {
 
     private final AnalyticsRepository repo;
 
-    public AnalyticsService(AnalyticsRepository repo) {
+    private final JobAdService jobAdService;
+    private final DepartmentService departmentService;
+    private final CandidateService candidateService;
+
+
+    public AnalyticsService(AnalyticsRepository repo,
+                            JobAdService jobAdService,
+                            DepartmentService departmentService,
+                            CandidateService candidateService) {
         this.repo = repo;
+        this.jobAdService = jobAdService;
+        this.departmentService = departmentService;
+        this.candidateService = candidateService;
     }
 
     /* ------------------------ Helpers ------------------------ */
@@ -80,7 +99,11 @@ public class AnalyticsService {
 
     /* --------------------- Department scope --------------------- */
 
-    public DepartmentStatsDto getDepartmentStats(int deptId) {
+    public DepartmentStatsDto getDepartmentStats(int deptId, Integer orgId) {
+        if(!this.departmentService.existsByOrg(deptId, orgId)){
+            return null;
+        }
+
         long total    = repo.countTotalCandidatesByDept(deptId);
         long approved = repo.countCandidatesByStatusDept(deptId, "Approved");
         long rejected = repo.countCandidatesByStatusDept(deptId, "Rejected");
@@ -127,7 +150,11 @@ public class AnalyticsService {
 
     /* ---------------------- Occupation scope --------------------- */
 
-public OccupationStatsDto getOccupationStats(int deptId, int occId) {
+public OccupationStatsDto getOccupationStats(int deptId, int occId, Integer orgId) {
+    if(!this.departmentService.existsByOrg(deptId, orgId)){
+        return null;
+    }
+
     long total    = repo.countTotalCandidatesByDeptOcc(deptId, occId);
     long approved = repo.countCandidatesByStatusDeptOcc(deptId, occId, "Approved");
     long rejected = repo.countCandidatesByStatusDeptOcc(deptId, occId, "Rejected");
@@ -172,7 +199,10 @@ public OccupationStatsDto getOccupationStats(int deptId, int occId) {
 
     /* ------------------------ Job Ad scope ------------------------ */
 
-    public JobAdStatsDto getJobAdStats(int jobAdId) {
+    public JobAdStatsDto getJobAdStats(int jobAdId, Integer orgId) {
+        if(!this.jobAdService.existsByOrg(jobAdId, orgId)){
+            return null;
+        }
         long total    = repo.countTotalCandidatesByJobAd(jobAdId);
         long approved = repo.countCandidatesByStatusJobAd(jobAdId, "Approved");
         long rejected = repo.countCandidatesByStatusJobAd(jobAdId, "Rejected");
@@ -234,7 +264,12 @@ public OccupationStatsDto getOccupationStats(int deptId, int occId) {
 
     /* ------------------------ Candidate scope ------------------------ */
 
-    public CandidateStatsDto getCandidateStats(int candidateId) {
+    public CandidateStatsDto getCandidateStats(int candidateId, Integer orgId) {
+        if(!this.candidateService.existsByOrg(candidateId, orgId)){
+            return null;
+        }
+
+
         double overall = round1(repo.candidateOverallScore(candidateId));
 
         var stepScores      = repo.candidateStepScores(candidateId);
@@ -254,13 +289,20 @@ public OccupationStatsDto getOccupationStats(int deptId, int occId) {
         );
     }
     // Λίστα υποψηφίων για job ad (για το αριστερό box στο Candidates tab)
-    public List<CandidateLiteDto> getJobAdCandidates(int jobAdId) {
+    public List<CandidateLiteDto> getJobAdCandidates(int jobAdId, Integer orgId) {
+        if(!this.jobAdService.existsByOrg(jobAdId, orgId)){
+            return null;
+        }
+
         return repo.candidatesByJobAd(jobAdId);
     }
 
     /* ------------------------ Step scope ------------------------ */
 
-    public StepStatsDto getStepStats(int jobAdId, int stepId) {
+    public StepStatsDto getStepStats(int jobAdId, int stepId, Integer orgId) {
+        if(!this.jobAdService.existsByOrg(jobAdId, orgId)){
+            return null;
+        }
         // 1) Avg step score (όλων των ερωτήσεων στο step, σε όλους τους υποψήφιους)
         double avgStepScore = round1(repo.avgStepScoreForJobAdStep(jobAdId, stepId));
 
@@ -302,13 +344,20 @@ public OccupationStatsDto getOccupationStats(int deptId, int occId) {
 
     }
 
-    public java.util.List<StepLiteDto> getStepsForJobAd(int jobAdId) {
+    public java.util.List<StepLiteDto> getStepsForJobAd(int jobAdId, Integer orgId) {
+        if(!this.jobAdService.existsByOrg(jobAdId, orgId)){
+            return null;
+        }
         return repo.stepsForJobAd(jobAdId);
     }
 
     /* ------------------------ Question scope ------------------------ */
 
-    public QuestionStatsDto getQuestionStats(int jobAdId, int questionId) {
+    public QuestionStatsDto getQuestionStats(int jobAdId, int questionId, Integer orgId) {
+        if(!this.jobAdService.existsByOrg(jobAdId, orgId)){
+            return null;
+        }
+
         // 0–100 ήδη από το repo
         double avg100 = round1(repo.avgScoreForQuestionInJobAd(jobAdId, questionId));
 
@@ -346,7 +395,10 @@ public OccupationStatsDto getOccupationStats(int deptId, int occId) {
         );
     }
 
-    public java.util.List<QuestionLiteDto> getQuestionsForJobAdStep(int jobAdId, int stepId) {
+    public java.util.List<QuestionLiteDto> getQuestionsForJobAdStep(int jobAdId, int stepId, Integer orgId) {
+        if(!this.jobAdService.existsByOrg(jobAdId, orgId)){
+            return null;
+        }
         return repo.questionsForJobAdStep(jobAdId, stepId);
     }
 
@@ -356,12 +408,12 @@ public OccupationStatsDto getOccupationStats(int deptId, int occId) {
 
     /* ------------------------ Skill scope ------------------------ */
 
-    public SkillStatsDto getSkillStats(int skillId) {
+    public SkillStatsDto getSkillStats(int skillId, int orgId) {
         // 1) Avg skill score (0..10)
-        double avg = round1(repo.avgScoreForSkill(skillId));
+        double avg = round1(repo.avgScoreForSkill(skillId, orgId));
 
         // 2) Candidate averages για pass rate + histogram
-        var avgs = repo.candidateSkillAverages(skillId); // 0..10, μπορεί να έχει null
+        var avgs = repo.candidateSkillAverages(skillId, orgId); // 0..10, μπορεί να έχει null
         long total  = avgs.stream().filter(a -> a != null).count();
         long passes = avgs.stream().filter(a -> a != null && a >= 5.0).count();
         double passRate = percent(passes, total);
@@ -393,7 +445,11 @@ public OccupationStatsDto getOccupationStats(int deptId, int occId) {
         );
     }
 
-    public SkillStatsDto getSkillStatsForJobAdQuestion(int jobAdId, int questionId, int skillId) {
+    public SkillStatsDto getSkillStatsForJobAdQuestion(int jobAdId, int questionId, int skillId, Integer orgId) {
+        if(!this.jobAdService.existsByOrg(jobAdId, orgId)){
+            return null;
+        }
+
         // avg (0–10) από τα skill scores του context
         double avg10 = round1(repo.avgScoreForSkillInJobAdQuestion(jobAdId, questionId, skillId));
 

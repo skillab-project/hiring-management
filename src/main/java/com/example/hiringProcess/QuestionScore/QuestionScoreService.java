@@ -33,9 +33,24 @@ public class QuestionScoreService {
         this.candidateRepository = candidateRepository;
     }
 
-    // Επιστρέφει όλα τα QuestionScore records από τη βάση
-    public List<QuestionScore> getAll() {
-        return questionScoreRepository.findAll();
+
+    /**
+     * Checks if a specific QuestionScore belongs to the given Organization.
+     */
+    public boolean existsByOrg(Integer questionScoreId, Integer orgId) {
+        return questionScoreRepository.existsByIdAndOrganisationId(questionScoreId, orgId);
+    }
+
+//    // Επιστρέφει όλα τα QuestionScore records από τη βάση
+//    public List<QuestionScore> getAll() {
+//        return questionScoreRepository.findAll();
+//    }
+
+    /**
+     * Returns all QuestionScores belonging to the specified organization.
+     */
+    public List<QuestionScore> getAllByOrg(Integer orgId) {
+        return questionScoreRepository.findAllByOrganisationId(orgId);
     }
 
     // Επιστρέφει ένα QuestionScore με βάση το id

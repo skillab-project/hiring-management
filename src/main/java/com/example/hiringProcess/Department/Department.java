@@ -4,96 +4,56 @@ import com.example.hiringProcess.JobAd.JobAd;
 import com.example.hiringProcess.Organisation.Organisation;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import org.springframework.web.bind.annotation.CrossOrigin;
-
 import java.util.Set;
 
-
 @Entity
-@Table(name = "department")
+@Table(name = "departments") // Matches Employee plural naming
 public class Department {
     @Id
-    @SequenceGenerator(
-            name = "department_sequence",
-            sequenceName = "department_sequence",
-            allocationSize = 1
-    )
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "department_sequence"
-    )
-    private int id;  // ΤΟ ID ΠΡΕΠΕΙ ΝΑ ΔΗΛΩΘΕΙ ΠΡΩΤΟ!
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "departments_seq")
+    @SequenceGenerator(name = "departments_seq", sequenceName = "departments_seq", allocationSize = 1)
+    private Integer id;
 
     private String name;
     private String location;
     private String description;
 
-    // Σχέση Department με JobAd
+    // Relationship with JobAd (Hiring specific)
     @ManyToMany(mappedBy = "departments")
     @JsonIgnore
     private Set<JobAd> jobAds;
 
-    // Σχέση Department με Organisation
+    // Relationship with Organisation
     @ManyToOne
     @JsonIgnore
-    @JoinColumn(name = "organisation_id", referencedColumnName = "id")
+    // Changed "organisation_id" to "organization_id" to match Employee truth
+    @JoinColumn(name = "organization_id", referencedColumnName = "id")
     private Organisation organisation;
 
     public Department(){}
 
     public Department(String name, String location, String description) {
         this.name = name;
-        this.location=location;
-        this.description=description;
-    }
-
-    // Getters and Setters
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
         this.location = location;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
         this.description = description;
     }
 
-    public int getId() {
-        return id;
-    }
+    // Getters and Setters ...
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
 
-    public void setId(int id) {
-        this.id = id;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public Organisation getOrganisation() {
-        return organisation;
-    }
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
 
-    public void setOrganisation(Organisation organisation) {
-        this.organisation = organisation;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public Set<JobAd> getJobAds() {
-        return jobAds;
-    }
+    public Organisation getOrganisation() { return organisation; }
+    public void setOrganisation(Organisation organisation) { this.organisation = organisation; }
 
-    public void setJobAds(Set<JobAd> jobAds) {
-        this.jobAds = jobAds;
-    }
+    public Set<JobAd> getJobAds() { return jobAds; }
+    public void setJobAds(Set<JobAd> jobAds) { this.jobAds = jobAds; }
 }

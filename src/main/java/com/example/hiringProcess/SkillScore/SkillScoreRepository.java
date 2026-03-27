@@ -13,6 +13,15 @@ import java.util.Optional;
 
 public interface SkillScoreRepository extends JpaRepository<SkillScore, Long> {
 
+    @Query("""
+    SELECT DISTINCT ss FROM SkillScore ss 
+    JOIN ss.candidate c 
+    JOIN c.jobAd ja 
+    JOIN ja.departments d 
+    WHERE d.organisation.id = :orgId
+""")
+    List<SkillScore> findAllByOrganisationId(@Param("orgId") Integer orgId);
+
     // idempotent lookup (ίδια τριάδα)
     Optional<SkillScore> findByCandidateAndQuestionAndSkill(
             Candidate candidate, Question question, Skill skill

@@ -1,48 +1,47 @@
 services:
-  hiring-manager-db:
-    image: postgres:16-alpine
-    container_name: hiring-manager-db
+
+  backend:
+    build: ./backend
+    container_name: skillab-hiring-backend
+    restart: unless-stopped
+    external_links:
+      - employee-pulse-db:postgres
     environment:
-      - POSTGRES_DB=hiringmanager_db
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
     volumes:
-      - hiring-postgres-data:/var/lib/postgresql/data
+        - cvs-data:/data/file-storage/cvs
     ports:
-      - "5434:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d hiringmanager_db"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - "8087:8080"
     networks:
-      - shared-net
-    labels:
-      io.portainer.accesscontrol.teams: skillab-all
+      - hr-shared-network
+    env_file:
+      - .env
 
-  hiring-management-backend:
-    build: .
-    image: ${DOCKER_REG}${DOCKER_REPO}${APP_NAME}:${DOCKER_TAG}
-    container_name: hiring-management-backend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: skillab-hiring-frontend
+    restart: unless-stopped
     depends_on:
-      hiring-manager-db:
-        condition: service_healthy
-    ports:
-      - "8890:8080"
+      - backend
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://hiring-manager-db:5432/hiringmanager_db
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=password
+      # React must receive REACT_APP_* values at build/runtime
+      REACT_APP_BASE_URL: ${REACT_APP_BASE_URL}
+    ports:
+      - "8088:3000"
     networks:
-      - shared-net
-    labels:
-      io.portainer.accesscontrol.teams: skillab-all
-
+      - hr-shared-network
+      
 networks:
-  shared-net:
+  hr-shared-network:
     external: true
 
 volumes:
-  hiring-postgres-data:
-    labels:
-      io.portainer.accesscontrol.teams: skillab-all
+  postgres-data:
+    driver: local
+  cvs-data:
+    driver: local

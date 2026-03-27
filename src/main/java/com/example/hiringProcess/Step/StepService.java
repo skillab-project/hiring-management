@@ -21,6 +21,32 @@ public class StepService {
     private final InterviewRepository interviewRepository;
     private final StepMapper stepMapper;
 
+
+    /**
+     * Checks if a specific Step belongs to the given Organization.
+     */
+    public boolean existsByOrg(Integer stepId, Integer orgId) {
+        return stepRepository.existsByIdAndOrganisationId(stepId, orgId);
+    }
+
+    public List<Step> getAllStepsByOrg(Integer orgId) {
+        return stepRepository.findAllByOrganisationId(orgId);
+    }
+
+    public Optional<Step> getStepById(Integer id) {
+        return stepRepository.findById(id);
+    }
+
+    public boolean allStepsBelongToOrg(List<Integer> stepIds, Integer orgId) {
+        if (stepIds.isEmpty()) return true;
+
+        // Count how many of the provided IDs actually belong to the org
+        long count = stepRepository.countByIdInAndOrganisationId(stepIds, orgId);
+
+        // If the count matches the size of our list, they are all valid
+        return count == stepIds.size();
+    }
+
     /* ================= READ: Steps ανά Interview (sorted) ================= */
     public List<StepResponseDTO> getStepsByInterviewSorted(int interviewId) {
         return stepRepository.findByInterviewIdOrderByPositionAsc(interviewId)

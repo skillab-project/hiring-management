@@ -1,75 +1,54 @@
 package com.example.hiringProcess.Organisation;
 
 import com.example.hiringProcess.Department.Department;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table
+@Table(name = "organizations")
 public class Organisation {
+
     @Id
-    @SequenceGenerator(
-            name = "department_sequence",
-            sequenceName = "department_sequence",
-            allocationSize = 1
-    )
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "department_sequence"
-    )
-    private int id;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "organizations_seq")
+    @SequenceGenerator(name = "organizations_seq", sequenceName = "organizations_seq", allocationSize = 1)
+    private Integer id;
 
     private String name;
-    private String description;
 
-    // Σχέση Organization με Department
+    private String description; // Specific to Hiring
+
+    private String location;    // Added to match Employee/DB structure
+
+    // Note: mappedBy must match the variable name in your Department entity
     @OneToMany(mappedBy = "organisation", cascade = CascadeType.ALL, orphanRemoval = true)
-
     private List<Department> departments = new ArrayList<>();
 
-    public Organisation(){}
+    public Organisation() {}
 
     public Organisation(String name, String description) {
         this.name = name;
-        this.description=description;
+        this.description = description;
     }
+
+    // Standard Getters and Setters
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
+
+    public List<Department> getDepartments() { return departments; }
+    public void setDepartments(List<Department> departments) { this.departments = departments; }
 
     public void addDepartment(Department department) {
         departments.add(department);
         department.setOrganisation(this);
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public List<Department> getDepartments() {
-        return departments;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public void setDepartments(List<Department> departments) {
-        this.departments = departments;
     }
 }

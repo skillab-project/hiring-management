@@ -10,7 +10,7 @@ RUN mvn dependency:go-offline
 COPY src ./src
 #RUN mvn clean install
 #RUN mvn package -DskipTests
-RUN mvn clean package -DskipTests
+RUN mvn clean package -Dmaven.test.skip=true
 
 # Stage 2: Run the application
 FROM eclipse-temurin:21-jdk-alpine

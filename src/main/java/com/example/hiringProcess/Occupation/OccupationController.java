@@ -41,22 +41,4 @@ public class OccupationController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping
-    public ResponseEntity<Occupation> addNewOccupation(@RequestBody Occupation occupation) {
-        occupationService.addNewOccupation(occupation);
-        return ResponseEntity.ok(occupation);
-    }
-
-    @PutMapping("/{occupationId}")
-    public ResponseEntity<Void> updateOccupation(@PathVariable Integer occupationId,
-                                                 @RequestBody Occupation updatedOccupation) {
-        occupationService.updateOccupation(occupationId, updatedOccupation);
-        return ResponseEntity.noContent().build();
-    }
-
-    @DeleteMapping("/{occupationId}")
-    public ResponseEntity<Void> deleteOccupation(@PathVariable Integer occupationId) {
-        occupationService.deleteOccupation(occupationId);
-        return ResponseEntity.noContent().build();
-    }
 }

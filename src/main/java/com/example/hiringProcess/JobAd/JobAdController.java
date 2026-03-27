@@ -1,7 +1,9 @@
 package com.example.hiringProcess.JobAd;
 
+import com.example.hiringProcess.Organisation.OrganisationService;
 import com.example.hiringProcess.Skill.SkillDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,90 +13,154 @@ import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
-@RequestMapping("/jobAds")
+@RequestMapping("/api/v1/jobAds")
 public class JobAdController {
 
     private final JobAdService jobAdService;
+    private final OrganisationService organizationService;
 
     @Autowired
-    public JobAdController(JobAdService jobAdService) {
+    public JobAdController(JobAdService jobAdService, OrganisationService organizationService) {
+        this.organizationService = organizationService;
         this.jobAdService = jobAdService;
     }
 
     /* ===================== LIST / GET ONE ===================== */
 
-    @GetMapping
-    public List<JobAdSummaryDTO> getJobAds() {
-        return jobAdService.getJobAdSummaries();
+    @GetMapping //OK
+    public List<JobAdSummaryDTO> getJobAds(@RequestHeader(value = "X-User-Organization", required = true) String headerOrgName) {
+        Integer orgId = organizationService.getIdByName(headerOrgName);
+
+        return jobAdService.getJobAdSummariesByOrg(orgId);
     }
 
-    @GetMapping("/{jobAdId}")
-    public Optional<JobAd> getJobAd(@PathVariable Integer jobAdId) {
-        return jobAdService.getJobAd(jobAdId);
-    }
+    @GetMapping("/{jobAdId}") //OK
+    public ResponseEntity<JobAd> getJobAd( @PathVariable Integer jobAdId, @RequestHeader(value = "X-User-Organization", required = true) String headerOrgName) {
+        Integer orgId = organizationService.getIdByName(headerOrgName);
+
+        if (!jobAdService.existsByOrg(jobAdId, orgId)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return jobAdService.getJobAdByOrg(orgId, jobAdId)
+            .map(ResponseEntity::ok)
+            .orElseGet(() -> ResponseEntity.notFound().build());   
+        }
 
     /* ===================== DETAILS (DTO) ===================== */
 
     // συμβατότητα με υπάρχον frontend: /jobAds/details?jobAdId=...
-    @GetMapping("/details")
-    public ResponseEntity<JobAdDetailsDTO> getJobAdDetailsByQuery(@RequestParam("jobAdId") Integer jobAdId) {
+    @GetMapping("/details") //OK
+    public ResponseEntity<JobAdDetailsDTO> getJobAdDetailsByQuery( @RequestParam("jobAdId") Integer jobAdId, @RequestHeader(value = "X-User-Organization", required = true) String headerOrgName) {
+        Integer orgId = organizationService.getIdByName(headerOrgName);
+
+//        @PathVariable Integer orgId,
+        if (!jobAdService.existsByOrg(jobAdId, orgId)) {
+            return ResponseEntity.notFound().build();
+        }
+
         return jobAdService.getJobAdDetails(jobAdId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     // RESTful εναλλακτική: /jobAds/{jobAdId}/details
-    @GetMapping("/{jobAdId}/details")
-    public ResponseEntity<JobAdDetailsDTO> getJobAdDetailsByPath(@PathVariable Integer jobAdId) {
+    @GetMapping("/{jobAdId}/details") //OK
+    public ResponseEntity<JobAdDetailsDTO> getJobAdDetailsByPath(@PathVariable Integer jobAdId, @RequestHeader(value = "X-User-Organization", required = true) String headerOrgName) {
+        Integer orgId = organizationService.getIdByName(headerOrgName);
+
+        if (!jobAdService.existsByOrg(jobAdId, orgId)) {
+            return ResponseEntity.notFound().build();
+        }
+
         return jobAdService.getJobAdDetails(jobAdId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     // Update μόνο description (skills πλέον ΔΕΝ αποθηκεύονται στο JobAd)
-    @PutMapping("/{jobAdId}/details")
-    public ResponseEntity<Void> updateDetails(@PathVariable Integer jobAdId,
-                                              @RequestBody JobAdUpdateDTO body) {
+    @PutMapping("/{jobAdId}/details") //OK
+    public ResponseEntity<Void> updateDetails( @PathVariable Integer jobAdId,
+                                              @RequestBody JobAdUpdateDTO body, @RequestHeader(value = "X-User-Organization", required = true) String headerOrgName) {
+        Integer orgId = organizationService.getIdByName(headerOrgName);
+
+
+        if (!jobAdService.existsByOrg(jobAdId, orgId)) {
+            return ResponseEntity.notFound().build();
+        }
+
         jobAdService.updateDetails(jobAdId, body);
         return ResponseEntity.noContent().build(); // 204
     }
 
     /* ===================== CREATE / UPDATE / DELETE ===================== */
 
-    @PostMapping
-    public void addNewJobAd(@RequestBody JobAd jobAd) {
-        jobAdService.addNewJobAd(jobAd);
+    @PostMapping //OK
+    public ResponseEntity<Void> addNewJobAd( @RequestBody JobAd jobAd, @RequestHeader(value = "X-User-Organization", required = true) String headerOrgName) {
+        Integer orgId = organizationService.getIdByName(headerOrgName);
+
+        jobAdService.addNewJobAd(orgId, jobAd);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @PostMapping("/by-names")
-    public ResponseEntity<JobAd> addNewJobAdByNames(@RequestBody JobAdCreateByNamesRequest req) {
-        JobAd created = jobAdService.addNewJobAdByNames(req);
+    @PostMapping("/by-names") //OK
+    public ResponseEntity<JobAd> addNewJobAdByNames( @RequestBody JobAdCreateByNamesRequest req, @RequestHeader(value = "X-User-Organization", required = true) String headerOrgName) {
+        Integer orgId = organizationService.getIdByName(headerOrgName);
+
+        JobAd created = jobAdService.addNewJobAdByNames(orgId, req);
         return ResponseEntity.ok(created);
     }
 
-    @PutMapping("/{jobAdId}")
-    public void updateJobAd(@PathVariable Integer jobAdId, @RequestBody JobAd jobAd) {
+    @PutMapping("/{jobAdId}") // OK
+    public void updateJobAd( @PathVariable Integer jobAdId, @RequestBody JobAd jobAd, @RequestHeader(value = "X-User-Organization", required = true) String headerOrgName) {
+        Integer orgId = organizationService.getIdByName(headerOrgName);
+
+
+        if (!jobAdService.existsByOrg(jobAdId, orgId)) {
+            return;
+        }
         jobAdService.updateJobAd(jobAdId, jobAd);
     }
 
-    @DeleteMapping("/{jobAdId}")
-    public ResponseEntity<Void> deleteJobAd(@PathVariable Integer jobAdId) {
+    @DeleteMapping("/{jobAdId}") //OK
+    public ResponseEntity<Void> deleteJobAd( @PathVariable Integer jobAdId, @RequestHeader(value = "X-User-Organization", required = true) String headerOrgName) {
+        Integer orgId = organizationService.getIdByName(headerOrgName);
+
+
+        if (!jobAdService.existsByOrg(jobAdId, orgId)) {
+            return ResponseEntity.notFound().build();
+        }
+
         jobAdService.deleteJobAd(jobAdId);
         return ResponseEntity.noContent().build();
     }
 
     /* ===================== STATUS / PUBLISH ===================== */
 
-    @PostMapping("/{jobAdId}/publish")
-    public ResponseEntity<Void> publish(@PathVariable Integer jobAdId) {
+    @PostMapping("/{jobAdId}/publish") //OK
+    public ResponseEntity<Void> publish( @PathVariable Integer jobAdId, @RequestHeader(value = "X-User-Organization", required = true) String headerOrgName) {
+        Integer orgId = organizationService.getIdByName(headerOrgName);
+
+
+        if (!jobAdService.existsByOrg(jobAdId, orgId)) {
+            return ResponseEntity.notFound().build();
+        }
+
         jobAdService.publish(jobAdId);
         return ResponseEntity.noContent().build();
     }
 
     /* ===================== SKILLS (ΜΟΝΟ από interview) ===================== */
 
-    @GetMapping("/{jobAdId}/interview-skills")
-    public List<SkillDTO> getInterviewSkills(@PathVariable Integer jobAdId) {
-        return jobAdService.getSkillsFromInterview(jobAdId);
+    @GetMapping("/{jobAdId}/interview-skills") //OK
+    public ResponseEntity<List<SkillDTO>> getInterviewSkills( @PathVariable Integer jobAdId, @RequestHeader(value = "X-User-Organization", required = true) String headerOrgName) {
+        Integer orgId = organizationService.getIdByName(headerOrgName);
+
+
+        if (!jobAdService.existsByOrg(jobAdId, orgId)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(jobAdService.getSkillsFromInterview(jobAdId));
     }
 }

@@ -7,29 +7,24 @@ import java.util.List;
 import com.example.hiringProcess.JobAd.JobAd;
 
 @Entity
-@Table
+@Table(name = "occupations") // Matches Employee
 public class Occupation {
     @Id
-    @SequenceGenerator(
-            name = "occupation_sequence",
-            sequenceName = "occupation_sequence",
-            allocationSize = 1
-    )
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "occupation_sequence"
-    )
-
-    private int id;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "occupations_seq")
+    @SequenceGenerator(name = "occupations_seq", sequenceName = "occupations_seq", allocationSize = 1)
+    private Integer id;
 
     private String title;
+
     private String escoId;
 
-    // Σχέση Occupation με JobAd
+    @Column(length = 1000)
+    private String description; // Added to match Employee/DB
+
+    // Relationship with JobAd (Hiring specific)
     @OneToMany(mappedBy = "occupation", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<JobAd> jobAds = new ArrayList<>();
-
 
     public Occupation() {}
 
@@ -38,39 +33,19 @@ public class Occupation {
         this.escoId = escoId;
     }
 
-    // ToString για debugging
-    @Override
-    public String toString() {
-        return "Occupation{" +
-                "id=" + id +
-                ", title='" + title + '\'' +
-                ", escoId='" + escoId + '\'' +
-                '}';
-    }
-
     // Getters and Setters
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
 
-    public String getTitle() {
-        return title;
-    }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+    public String getEscoId() { return escoId; }
+    public void setEscoId(String escoId) { this.escoId = escoId; }
 
-    public String getEscoId() {
-        return escoId;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public void setEscoId(String escoId) {
-        this.escoId = escoId;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
+    public List<JobAd> getJobAds() { return jobAds; }
+    public void setJobAds(List<JobAd> jobAds) { this.jobAds = jobAds; }
 }

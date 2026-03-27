@@ -28,12 +28,26 @@ public class QuestionService {
         this.skillRepository = skillRepository;
     }
 
+    public boolean existsByOrg(Integer questionId, Integer orgId) {
+        return questionRepository.existsByIdAndOrganisationId(questionId, orgId);
+    }
+
+    public boolean allQuestionsBelongToOrg(List<Integer> questionIds, Integer orgId) {
+        if (questionIds.isEmpty()) return true;
+
+        long count = questionRepository.countByIdInAndOrganisationId(questionIds, orgId);
+        return count == questionIds.size();
+    }
+
     // ===== Legacy =====
     public List<Question> getQuestions() {
         return questionRepository.findAll();
     }
 
-    public Optional<Question> getQuestion(Integer questionId) {
+    public Optional<Question> getQuestion(Integer questionId, Integer orgId) {
+        if(!this.questionRepository.existsByIdAndOrganisationId(questionId, orgId)){
+            return null;
+        }
         return questionRepository.findById(questionId);
     }
 
@@ -60,7 +74,11 @@ public class QuestionService {
 
 
     @Transactional
-    public void deleteQuestion(Integer questionId) {
+    public void deleteQuestion(Integer questionId, Integer orgId) {
+        if(!this.questionRepository.existsByIdAndOrganisationId(questionId, orgId)){
+            return;
+        }
+
         if (!questionRepository.existsById(questionId)) {
             throw new IllegalStateException("Question with id " + questionId + " does not exist");
         }
@@ -68,7 +86,11 @@ public class QuestionService {
     }
 
     @Transactional
-    public void updateQuestion(Integer questionId, Question updated) {
+    public void updateQuestion(Integer questionId, Question updated, Integer orgId) {
+        if(!this.questionRepository.existsByIdAndOrganisationId(questionId, orgId)){
+            return;
+        }
+
         Question existing = questionRepository.findById(questionId)
                 .orElseThrow(() -> new IllegalStateException("Question with id " + questionId + " does not exist"));
 

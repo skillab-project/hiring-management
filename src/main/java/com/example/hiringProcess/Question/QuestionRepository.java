@@ -10,6 +10,16 @@ import java.util.List;
 
 public interface QuestionRepository extends JpaRepository<Question, Integer> {
 
+    @Query("""
+    SELECT COUNT(q) FROM Question q 
+    JOIN q.step s 
+    JOIN s.interview i 
+    JOIN JobAd ja ON ja.interview.id = i.id 
+    JOIN ja.departments d 
+    WHERE q.id IN :ids AND d.organisation.id = :orgId
+""")
+    long countByIdInAndOrganisationId(@Param("ids") List<Integer> ids, @Param("orgId") Integer orgId);
+
     // Skills ενός step (όπως έχεις)
     @Query("""
            select distinct s
@@ -18,6 +28,18 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
            where q.step.id = :stepId
            """)
     List<Skill> findDistinctSkillsByStepId(@Param("stepId") Integer stepId);
+
+    @Query("""
+        SELECT CASE WHEN COUNT(q) > 0 THEN true ELSE false END 
+        FROM Question q 
+        JOIN q.step s 
+        JOIN s.interview i 
+        JOIN JobAd ja ON ja.interview.id = i.id 
+        JOIN ja.departments d 
+        WHERE q.id = :questionId AND d.organisation.id = :orgId
+    """)
+    boolean existsByIdAndOrganisationId(@Param("questionId") Integer questionId,
+                                        @Param("orgId") Integer orgId);
 
     // Όλες οι ερωτήσεις ενός step (χωρίς σειρά)
     List<Question> findByStep_Id(Integer stepId);

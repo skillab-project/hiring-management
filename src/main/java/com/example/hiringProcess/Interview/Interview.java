@@ -93,6 +93,7 @@ public class Interview {
     private int id;
 
     private String title;
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     /** inverse της 1–1, ΧΩΡΙΣ JoinColumn */

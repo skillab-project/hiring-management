@@ -3,6 +3,7 @@ package com.example.hiringProcess.Candidate;
 import com.example.hiringProcess.InterviewReport.InterviewReport;
 import com.example.hiringProcess.JobAd.JobAd;
 import com.example.hiringProcess.JobAd.JobAdRepository;
+import com.example.hiringProcess.JobAd.JobAdService;
 import com.example.hiringProcess.Question.Question;
 import com.example.hiringProcess.Question.QuestionRepository;
 import com.example.hiringProcess.Skill.Skill;
@@ -11,10 +12,7 @@ import com.example.hiringProcess.SkillScore.SkillScoreRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class CandidateService {
@@ -25,16 +23,24 @@ public class CandidateService {
     private final QuestionRepository questionRepository;
     private final SkillScoreRepository skillScoreRepository;
 
+    private final JobAdService jobAdService;
+
     public CandidateService(CandidateRepository candidateRepository,
                             CandidateMapper candidateMapper,
                             JobAdRepository jobAdRepository,
                             QuestionRepository questionRepository,
-                            SkillScoreRepository skillScoreRepository) {
+                            SkillScoreRepository skillScoreRepository,
+                            JobAdService jobAdService) {
         this.candidateRepository = candidateRepository;
         this.candidateMapper = candidateMapper;
         this.jobAdRepository = jobAdRepository;
         this.questionRepository = questionRepository;
         this.skillScoreRepository = skillScoreRepository;
+        this.jobAdService=jobAdService;
+    }
+
+    public boolean existsByOrg(Integer candId, Integer orgId) {
+        return candidateRepository.existsByIdAndOrganisationId(candId, orgId);
     }
 
     // === READs ===
@@ -43,12 +49,18 @@ public class CandidateService {
     }
 
     @Transactional(readOnly = true)
-    public List<CandidateDTO> getCandidateDTOs() {
-        return candidateRepository.findAllListDtos(); // projection
+    public List<CandidateDTO> getCandidateDTOs( Integer orgId) {
+//        return candidateRepository.findAllListDtos(); // projection
+        return candidateRepository.findAllListDtosByOrgId(orgId); // projection
+
     }
 
     @Transactional(readOnly = true)
-    public List<CandidateDTO> getCandidateDTOsByJobAd(Integer jobAdId) {
+    public List<CandidateDTO> getCandidateDTOsByJobAd(Integer orgId, Integer jobAdId) {
+        if(!this.jobAdService.existsByOrg(jobAdId,orgId)){
+            return new ArrayList<CandidateDTO>();
+        }
+
         return candidateRepository.findListDtosByJobAdId(jobAdId); // projection
     }
 
@@ -114,12 +126,20 @@ public class CandidateService {
     }
 
     @Transactional
-    public CandidateAndJobAdStatusDTO hireCandidate(Integer candidateId) {
+    public CandidateAndJobAdStatusDTO hireCandidate(Integer candidateId, Integer orgId) {
+        if(this.candidateRepository.existsByIdAndOrganisationId(candidateId, orgId)){
+            return null;
+        }
+
         Candidate cand = candidateRepository.findById(candidateId)
                 .orElseThrow(() -> new IllegalStateException("Candidate not found"));
 
         JobAd job = cand.getJobAd();
         if (job == null) throw new IllegalStateException("Candidate not linked to a JobAd");
+
+        if(this.jobAdService.existsByOrg(job.getId(), orgId)){
+            return null;
+        }
 
         if (!"Approved".equalsIgnoreCase(cand.getStatus())) {
             throw new IllegalStateException("Only Approved candidates can be hired");
@@ -129,7 +149,8 @@ public class CandidateService {
         candidateRepository.saveAndFlush(cand);
 
         job.setStatus("Complete");
-        jobAdRepository.save(job);
+        this.jobAdService.updateJobAd(job.getId(), job);
+//        jobAdRepository.save(job);
 
         long hiredCount = candidateRepository.countByJobAd_IdAndStatusIgnoreCase(job.getId(), "Hired");
 
@@ -139,15 +160,23 @@ public class CandidateService {
     }
 
     @Transactional(readOnly = true)
-    public List<CandidateFinalScoreDTO> getCandidateFinalScoresForJobAd(Integer jobAdId) {
+    public List<CandidateFinalScoreDTO> getCandidateFinalScoresForJobAd(Integer jobAdId,Integer orgId) {
+        if(this.jobAdService.existsByOrg(jobAdId, orgId)){
+            return null;
+        }
+
         return candidateRepository.findFinalScoresByJobAd(jobAdId);
     }
 
     // === Δημιουργία candidate + skeleton SkillScores ===
     @Transactional
-    public Candidate createCandidateWithSkeleton(Integer jobAdId, Candidate body) {
+    public Candidate createCandidateWithSkeleton(Integer jobAdId, Candidate body, Integer orgId) {
         JobAd jobAd = jobAdRepository.findById(jobAdId)
                 .orElseThrow(() -> new IllegalStateException("JobAd not found"));
+
+        if(this.jobAdService.existsByOrg(jobAd.getId(), orgId)){
+            return null;
+        }
 
         if (body.getStatus() == null || body.getStatus().isBlank()) body.setStatus("Pending");
         if (body.getComments() == null) body.setComments("");

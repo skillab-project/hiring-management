@@ -5,7 +5,7 @@ public class JobAdSummaryDTO {
     private String jobTitle;
     private String occupationName;
     private String status;
-    private String departmentName; // ✅ Προστέθηκε
+    private String departmentName;
 
     public JobAdSummaryDTO() {}
 
