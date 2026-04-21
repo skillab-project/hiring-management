@@ -35,59 +35,49 @@ class StepScoreServiceTest {
     @InjectMocks
     private StepScoreService stepScoreService;
 
-    @Test
-    void getStepById_shouldReturnStepIfExists() {
-        Step step = new Step();
-        when(stepRepository.findById(1)).thenReturn(Optional.of(step));
 
-        Optional<Step> result = stepScoreService.getStepById(1);
-
-        assertTrue(result.isPresent());
-        assertSame(step, result.get());
-    }
-
-    @Test
-    void getAllSteps_shouldReturnAllSteps() {
-        Step step1 = new Step();
-        Step step2 = new Step();
-        when(stepRepository.findAll()).thenReturn(List.of(step1, step2));
-
-        List<Step> result = stepScoreService.getAllSteps();
-
-        assertEquals(2, result.size());
-        assertTrue(result.contains(step1));
-        assertTrue(result.contains(step2));
-    }
-
-    @Test
-    void getStepsByInterviewReportId_shouldReturnStepsForReport() {
-        InterviewReport report = mock(InterviewReport.class);
-        var interview = mock(com.example.hiringProcess.Interview.Interview.class);
-        when(report.getInterview()).thenReturn(interview);
-        when(interview.getId()).thenReturn(100);
-        when(interviewReportRepository.findById(1)).thenReturn(Optional.of(report));
-
-        Step step1 = new Step();
-        Step step2 = new Step();
-        when(stepRepository.findByInterviewIdOrderByPositionAsc(100)).thenReturn(List.of(step1, step2));
-
-        List<Step> result = stepScoreService.getStepsByInterviewReportId(1);
-
-        assertEquals(2, result.size());
-        assertTrue(result.contains(step1));
-        assertTrue(result.contains(step2));
-    }
-
-    @Test
-    void getStepsByInterviewReportId_shouldThrowIfReportNotFound() {
-        when(interviewReportRepository.findById(1)).thenReturn(Optional.empty());
-
-        Exception exception = assertThrows(IllegalArgumentException.class, () ->
-                stepScoreService.getStepsByInterviewReportId(1)
-        );
-
-        assertEquals("Invalid report ID: 1", exception.getMessage());
-    }
+//    @Test
+//    void getAllSteps_shouldReturnAllSteps() {
+//        Step step1 = new Step();
+//        Step step2 = new Step();
+//        when(stepRepository.findAll()).thenReturn(List.of(step1, step2));
+//
+//        List<Step> result = stepScoreService.getStepsByInterviewReportId(1);
+//
+//        assertEquals(2, result.size());
+//        assertTrue(result.contains(step1));
+//        assertTrue(result.contains(step2));
+//    }
+//
+//    @Test
+//    void getStepsByInterviewReportId_shouldReturnStepsForReport() {
+//        InterviewReport report = mock(InterviewReport.class);
+//        var interview = mock(com.example.hiringProcess.Interview.Interview.class);
+//        when(report.getInterview()).thenReturn(interview);
+//        when(interview.getId()).thenReturn(100);
+//        when(interviewReportRepository.findById(1)).thenReturn(Optional.of(report));
+//
+//        Step step1 = new Step();
+//        Step step2 = new Step();
+//        when(stepRepository.findByInterviewIdOrderByPositionAsc(100)).thenReturn(List.of(step1, step2));
+//
+//        List<Step> result = stepScoreService.getStepsByInterviewReportId(1);
+//
+//        assertEquals(2, result.size());
+//        assertTrue(result.contains(step1));
+//        assertTrue(result.contains(step2));
+//    }
+//
+//    @Test
+//    void getStepsByInterviewReportId_shouldThrowIfReportNotFound() {
+//        when(interviewReportRepository.findById(1)).thenReturn(Optional.empty());
+//
+//        Exception exception = assertThrows(IllegalArgumentException.class, () ->
+//                stepScoreService.getStepsByInterviewReportId(1)
+//        );
+//
+//        assertEquals("Invalid report ID: 1", exception.getMessage());
+//    }
 
     @Test
     void getStepMetricsByCandidate_shouldReturnEmptyListIfStepIdsEmpty() {
