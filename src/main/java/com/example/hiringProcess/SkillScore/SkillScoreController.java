@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/organizations/{orgId}/skill-scores")
+@RequestMapping("/api/v1/skill-scores")
 public class SkillScoreController {
 
     private final SkillScoreService skillScoreService;
