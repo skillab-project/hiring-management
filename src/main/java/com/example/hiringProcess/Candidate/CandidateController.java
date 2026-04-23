@@ -193,7 +193,7 @@ public class CandidateController {
     }
 
     // Ενημέρωση status υποψηφίου
-    @PatchMapping("/{id}/status") //OK
+    @PutMapping("/{id}/status") //OK
     public ResponseEntity<Void> updateCandidateStatus(
             @PathVariable Integer id,
             @RequestBody CandidateStatusDTO dto, @RequestHeader(value = "X-User-Organization", required = true) String headerOrgName) {
