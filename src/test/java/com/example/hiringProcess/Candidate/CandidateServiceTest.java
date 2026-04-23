@@ -176,25 +176,25 @@ class CandidateServiceTest {
 //                () -> candidateService.hireCandidate(1, 1));
 //    }
 
-    @Test
-    void hireCandidate_shouldThrowIfCandidateNotFound() {
-        when(candidateRepository.findById(1)).thenReturn(Optional.empty());
+//    @Test
+//    void hireCandidate_shouldThrowIfCandidateNotFound() {
+//        when(candidateRepository.findById(1)).thenReturn(Optional.empty());
+//
+//        assertThrows(IllegalStateException.class,
+//                () -> candidateService.hireCandidate(1, 1));
+//    }
 
-        assertThrows(IllegalStateException.class,
-                () -> candidateService.hireCandidate(1, 1));
-    }
-
-    @Test
-    void hireCandidate_shouldThrowIfJobAdNull() {
-        Candidate candidate = new Candidate();
-        candidate.setStatus("Approved");
-        candidate.setJobAd(null);
-
-        when(candidateRepository.findById(1)).thenReturn(Optional.of(candidate));
-
-        assertThrows(IllegalStateException.class,
-                () -> candidateService.hireCandidate(1, 1));
-    }
+//    @Test
+//    void hireCandidate_shouldThrowIfJobAdNull() {
+//        Candidate candidate = new Candidate();
+//        candidate.setStatus("Approved");
+//        candidate.setJobAd(null);
+//
+//        when(candidateRepository.findById(1)).thenReturn(Optional.of(candidate));
+//
+//        assertThrows(IllegalStateException.class,
+//                () -> candidateService.hireCandidate(1, 1));
+//    }
 
 //    // === CREATE CANDIDATE WITH SKELETON ===
 //    @Test

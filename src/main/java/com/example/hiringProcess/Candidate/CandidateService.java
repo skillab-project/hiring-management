@@ -128,7 +128,7 @@ public class CandidateService {
     @Transactional
     public CandidateAndJobAdStatusDTO hireCandidate(Integer candidateId, Integer orgId) {
         if(!this.candidateRepository.existsByIdAndOrganisationId(candidateId, orgId)){
-            return null;
+            throw new IllegalStateException("Candidate not linked to a Organization");
         }
 
         Candidate cand = candidateRepository.findById(candidateId)
