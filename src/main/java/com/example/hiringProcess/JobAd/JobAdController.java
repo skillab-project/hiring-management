@@ -1,5 +1,7 @@
 package com.example.hiringProcess.JobAd;
 
+import com.example.hiringProcess.Interview.InterviewDetailsDTO;
+import com.example.hiringProcess.Interview.InterviewService;
 import com.example.hiringProcess.Organisation.OrganisationService;
 import com.example.hiringProcess.Skill.SkillDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,14 +18,18 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/v1/jobAds")
 public class JobAdController {
 
-    private final JobAdService jobAdService;
+  private final JobAdService jobAdService;
     private final OrganisationService organizationService;
+    private final InterviewService interviewService;
 
     @Autowired
-    public JobAdController(JobAdService jobAdService, OrganisationService organizationService) {
+    public JobAdController(JobAdService jobAdService, OrganisationService organizationService,
+                           InterviewService interviewService) {
         this.organizationService = organizationService;
         this.jobAdService = jobAdService;
+        this.interviewService = interviewService;
     }
+
 
     /* ===================== LIST / GET ONE ===================== */
 
@@ -64,19 +70,20 @@ public class JobAdController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // RESTful εναλλακτική: /jobAds/{jobAdId}/details
+    // RESTful εναλλακτική: /{jobAdId}/details
     @GetMapping("/{jobAdId}/details") //OK
-    public ResponseEntity<JobAdDetailsDTO> getJobAdDetailsByPath(@PathVariable Integer jobAdId, @RequestHeader(value = "X-User-Organization", required = true) String headerOrgName) {
+    public ResponseEntity<InterviewDetailsDTO> getJobAdDetailsByPath(@PathVariable Integer jobAdId, @RequestHeader(value = "X-User-Organization", required = true) String headerOrgName) {
         Integer orgId = organizationService.getIdByName(headerOrgName);
 
         if (!jobAdService.existsByOrg(jobAdId, orgId)) {
             return ResponseEntity.notFound().build();
         }
 
-        return jobAdService.getJobAdDetails(jobAdId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        InterviewDetailsDTO dto = interviewService.getInterviewDetailsByJobAd(jobAdId);
+        return (dto != null) ? ResponseEntity.ok(dto) : ResponseEntity.notFound().build();
+
     }
+
 
     // Update μόνο description (skills πλέον ΔΕΝ αποθηκεύονται στο JobAd)
     @PutMapping("/{jobAdId}/details") //OK
