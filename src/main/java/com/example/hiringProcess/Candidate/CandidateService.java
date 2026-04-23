@@ -137,7 +137,7 @@ public class CandidateService {
         JobAd job = cand.getJobAd();
         if (job == null) throw new IllegalStateException("Candidate not linked to a JobAd");
 
-        if(this.jobAdService.existsByOrg(job.getId(), orgId)){
+        if(!this.jobAdService.existsByOrg(job.getId(), orgId)){
             return null;
         }
 
@@ -161,7 +161,7 @@ public class CandidateService {
 
     @Transactional(readOnly = true)
     public List<CandidateFinalScoreDTO> getCandidateFinalScoresForJobAd(Integer jobAdId,Integer orgId) {
-        if(this.jobAdService.existsByOrg(jobAdId, orgId)){
+        if(!this.jobAdService.existsByOrg(jobAdId, orgId)){
             return null;
         }
 
@@ -174,7 +174,7 @@ public class CandidateService {
         JobAd jobAd = jobAdRepository.findById(jobAdId)
                 .orElseThrow(() -> new IllegalStateException("JobAd not found"));
 
-        if(this.jobAdService.existsByOrg(jobAd.getId(), orgId)){
+        if(!this.jobAdService.existsByOrg(jobAd.getId(), orgId)){
             return null;
         }
 
