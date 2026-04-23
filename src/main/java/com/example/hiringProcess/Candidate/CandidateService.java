@@ -127,7 +127,7 @@ public class CandidateService {
 
     @Transactional
     public CandidateAndJobAdStatusDTO hireCandidate(Integer candidateId, Integer orgId) {
-        if(this.candidateRepository.existsByIdAndOrganisationId(candidateId, orgId)){
+        if(!this.candidateRepository.existsByIdAndOrganisationId(candidateId, orgId)){
             return null;
         }
 
