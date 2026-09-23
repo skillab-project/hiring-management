@@ -58,28 +58,29 @@ public class JobAdService {
     }
 
     private JobAdSummaryDTO convertToSummaryDTO(JobAd jobAd) {
-        return new JobAdSummaryDTO(
-                jobAd.getId(),
-                jobAd.getTitle(),
-                jobAd.getOccupation() != null
-                        ? jobAd.getOccupation().getTitle()
-                        : null,
-                jobAd.getStatus(),
-                // department...
-                null
-        );
+//        return new JobAdSummaryDTO(
+//                jobAd.getId(),
+//                jobAd.getTitle(),
+//                jobAd.getOccupation() != null
+//                        ? jobAd.getOccupation().getTitle()
+//                        : null,
+//                jobAd.getStatus(),
+//                // department...
+//                null
+//        );
 
-//        JobAdSummaryDTO dto = new JobAdSummaryDTO();
-//        dto.setId(jobAd.getId());
-//        dto.setJobTitle(jobAd.getTitle());
-//        dto.setStatus(jobAd.getStatus());
-//
-//        // If your DTO has a department name, get it from the first department
-//        if (jobAd.getDepartments() != null && !jobAd.getDepartments().isEmpty()) {
-//            dto.setDepartmentName(jobAd.getDepartments().iterator().next().getName());
-//        }
-//
-//        return dto;
+        JobAdSummaryDTO dto = new JobAdSummaryDTO();
+        dto.setId(jobAd.getId());
+        dto.setJobTitle(jobAd.getTitle());
+        dto.setStatus(jobAd.getStatus());
+        dto.setOccupationName(jobAd.getOccupation().getTitle());
+
+        // If your DTO has a department name, get it from the first department
+        if (jobAd.getDepartments() != null && !jobAd.getDepartments().isEmpty()) {
+            dto.setDepartmentName(jobAd.getDepartments().iterator().next().getName());
+        }
+
+        return dto;
     }
 
     public Optional<JobAd> getJobAdByOrg(Integer orgId, Integer jobAdId) {
