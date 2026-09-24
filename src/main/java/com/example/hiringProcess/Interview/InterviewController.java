@@ -76,7 +76,7 @@ public class InterviewController { //TODO check to remove class
     }
 
     // ✅ Save interview description
-    @PutMapping("/interviews/{interviewId}/description")
+    @PutMapping("step/interviews/{interviewId}/description")
     public ResponseEntity<Void> updateInterviewDescription(
             @PathVariable Integer interviewId,
             @RequestBody InterviewDescriptionDTO body) {
