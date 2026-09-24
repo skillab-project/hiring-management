@@ -57,7 +57,7 @@ public class InterviewController { //TODO check to remove class
         interviewService.addNewInterview(interview);
     }
 
-    // ✅ Δημιουργία Step και επιστροφή DTO
+    // Δημιουργία Step και επιστροφή DTO
     @PostMapping("/interviews/{interviewId}/steps")
     public ResponseEntity<StepResponseDTO> addStepToInterview(
             @PathVariable Integer interviewId,
@@ -75,8 +75,8 @@ public class InterviewController { //TODO check to remove class
         return ResponseEntity.ok(created);
     }
 
-    // ✅ Save interview description
-    @PutMapping("step/interviews/{interviewId}/description")
+    // Save interview description
+    @PutMapping("/interviews/{interviewId}/description")
     public ResponseEntity<Void> updateInterviewDescription(
             @PathVariable Integer interviewId,
             @RequestBody InterviewDescriptionDTO body) {
