@@ -1,5 +1,6 @@
 package com.example.hiringProcess.Step;
 
+import com.example.hiringProcess.Interview.InterviewDescriptionDTO;
 import com.example.hiringProcess.Interview.InterviewService;
 import com.example.hiringProcess.Organisation.OrganisationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -141,5 +142,17 @@ public class StepController {
         } catch (Exception ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
         }
+    }
+
+    @PutMapping("/interviews/{interviewId}/description")
+    public ResponseEntity<Void> updateInterviewDescription(
+            @PathVariable Integer interviewId,
+            @RequestBody InterviewDescriptionDTO body) {
+
+        if (body == null || body.description() == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        interviewService.updateDescription(interviewId, body.description());
+        return ResponseEntity.ok().build();
     }
 }
