@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
+//uncomment class due to frontend component existence
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
 public class InterviewController { //TODO check to remove class
