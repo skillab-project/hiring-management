@@ -95,7 +95,7 @@ public final class AnalyticsMapper {
     public static final RowMapper<SkillLiteDto> SKILL_LITE =
             (rs, n) -> new SkillLiteDto(
                     rs.getInt("id"),
-                    s(rs, "title")
+                    s(rs, "name")
             );
 
     /* -------- local helpers -------- */
